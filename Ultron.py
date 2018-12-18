@@ -6,6 +6,7 @@ from xml.dom import minidom
 import re
 import urllib
 import bs4 as bs
+from nltk import tokenize
 
 with open("OutPut.txt","w+") as f:
     f.write("***************SUMMARY REPORT*******************")
@@ -36,12 +37,71 @@ def Summary(mut):
         f.close
         return rsId
 
-def PMID(rsId):
-    url = "https://www.ncbi.nlm.nih.gov/research/bionlp/litvar/api/v1/public/rsids2pmids?rsids={0}".format(rsId)
+def PMID(rsId,mut):
+    url = "https://www.ncbi.nlm.nih.gov/research/bionlp/litvar/api/v1/public/rsids2pmids?rsids={0}".format(rsId) 
     response = urllib.urlopen(url)
     resp_text = response.read().decode('UTF-8')
     dataVal= json.loads(resp_text)
-    print type(dataVal)
+    pmid_list = dataVal[0]['pmids']
+    with open("OutPut.txt","a+") as f:
+        f.write("\n\n*******************************************")
+        f.write("\n\nprinting the list of PMIDs for  %s" %mut)
+        f.write("\n")
+        f.seek(0)
+        for item in pmid_list:
+            f.write("%s,"%str(item))
+        f.write("\n")
+        f.write("\n\n*******************************************")
+        f.close
+        return pmid_list
+        
+def PMCID(pmid_list,mut):
+    pmcid_list = []
+    for i in pmid_list:
+        s =0
+        url = "https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/?ids={0}".format(i)
+        response = urllib.urlopen(url)
+        resp_text = response.read().decode('UTF-8')
+        dataVal = bs.BeautifulSoup(resp_text,'xml')
+        soup = dataVal.body
+        for i in dataVal.find_all("record"):
+            if i.has_attr('pmcid'):
+                pmcid_list.append(i['pmcid'])
+                print "Sit Tight while Ultron converting your PMID to PMCID"
+                print "Converting......"
+            else:
+                pass
+    with open("OutPut.txt","a+") as f:
+        f.write("\n\n*******************************************")
+        f.write("\n\nprinting the list of PMCID for  %s" %mut)
+        f.write("\n")
+        f.seek(0)
+        for item in pmcid_list:
+            f.write("%s,"%item)
+        f.write("\n")
+        f.write("\n\n*******************************************")
+        f.close
+        return pmcid_list
+
+
+def getFulltext(pmcid_list,mut):
+     for i in pmcid_list:
+      
+         url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id="+str(i)
+         source = urllib.urlopen(url).read()
+         #soup = bs.BeautifulSoup(source,'lxml')
+         #body = soup.body
+         #for p in body.find_all("p"):
+             #s = tokenize.sent_tokenize((p))
+             #for i in s:
+                 #if mut in i:
+                     #print i
+         print ("root")            
+         tree = ET.parse(source)
+         root = tree.getroot()
+         for i in root.iter("p"):
+             print (i.text)
+
 
 
 
@@ -60,4 +120,7 @@ def PMID(rsId):
 
 
 rsId = Summary("A146T")
+pmid_list = PMID(rsId,"A146T")
+pmcid_list = PMCID(pmid_list,"A146T")
+getFulltext(pmcid_list,"A146T")
     
