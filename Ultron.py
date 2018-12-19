@@ -35,7 +35,7 @@ def Summary(mut):
         
             f.write("\n"+item)
         f.close
-        return rsId
+        return rsId,hgvsList
 
 def PMID(rsId,mut):
     url = "https://www.ncbi.nlm.nih.gov/research/bionlp/litvar/api/v1/public/rsids2pmids?rsids={0}".format(rsId) 
@@ -84,23 +84,51 @@ def PMCID(pmid_list,mut):
         return pmcid_list
 
 
+with open("Outallput.txt","w+") as f:
+    f.close()
 def getFulltext(pmcid_list,mut):
      for i in pmcid_list:
       
          url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id="+str(i)
          source = urllib.urlopen(url).read()
-         #soup = bs.BeautifulSoup(source,'lxml')
-         #body = soup.body
-         #for p in body.find_all("p"):
-             #s = tokenize.sent_tokenize((p))
-             #for i in s:
-                 #if mut in i:
-                     #print i
-         print ("root")            
-         tree = ET.parse(source)
-         root = tree.getroot()
-         for i in root.iter("p"):
-             print (i.text)
+         soup = bs.BeautifulSoup(source,'lxml')
+         body = soup.body
+         with open("Outallput.txt","w+") as f:
+             f.write("\n\n*******************************************")
+             f.write("\n\nTest matching to PMCID :"+i)
+             for p in body.find_all("p"):
+                     f.write("\n"+str(p))
+             f.close()
+         def remove_tag(text):
+             with open("Clean_Out.txt","a+") as t:
+                  clean = re.compile('<.*?>')
+                  txt = re.sub(clean,'',text)
+                  t.write(txt)
+                  return txt 
+             
+         def tokenize(txt):
+             tt = re.split(r' *[\.\?!][\'"\)\]]* *', txt) 
+             return tt
+         
+         def serachItem(tt):
+             searched_text = [i for i in tt if mut in i]
+             with open("OutPut.txt","a+") as f:
+                  
+                      f.write("\n\n*******************************************")
+                      f.write("\n\nTest matching to PMCID :"+i)
+                      for item in searched_text:
+                          f.write("%s,"%str(item))
+                      f.write("\n\n*******************************************")
+                      f.close()
+             #print searched_text
+            # return searched_text  
+          
+ 
+         text1 = open("Outallput.txt","r")
+         text = text1.read() 
+         txt = remove_tag(text)
+         tt = tokenize(txt)
+         serachItem(tt)
 
 
 
@@ -119,8 +147,11 @@ def getFulltext(pmcid_list,mut):
 
 
 
-rsId = Summary("A146T")
+
+
+
+rsId,hgvsList = Summary("A146T")
 pmid_list = PMID(rsId,"A146T")
 pmcid_list = PMCID(pmid_list,"A146T")
 getFulltext(pmcid_list,"A146T")
-    
+getFulltext(pmcid_list,"A146T")
