@@ -88,7 +88,7 @@ with open("Outallput.txt","w+") as f:
     f.close()
 def getFulltext(pmcid_list,mut):
      for i in pmcid_list:
-      
+         PMCID = i  
          url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id="+str(i)
          source = urllib.urlopen(url).read()
          soup = bs.BeautifulSoup(source,'lxml')
@@ -115,7 +115,7 @@ def getFulltext(pmcid_list,mut):
              with open("OutPut.txt","a+") as f:
                   
                       f.write("\n\n*******************************************")
-                      f.write("\n\nTest matching to PMCID :"+i)
+                      f.write("\n\nTest matching to PMCID %s:"%PMCID)
                       for item in searched_text:
                           f.write("%s,"%str(item))
                       f.write("\n\n*******************************************")
@@ -129,25 +129,6 @@ def getFulltext(pmcid_list,mut):
          txt = remove_tag(text)
          tt = tokenize(txt)
          serachItem(tt)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 rsId,hgvsList = Summary("A146T")
